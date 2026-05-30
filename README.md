@@ -8,15 +8,25 @@ your agent *does* rather than how it runs.
 ## Installation
 
 ```sh
+# If a published release is available:
 pip install google-antigravity
+
+# For local development (recommended):
+# From the repository root, install the package in editable mode:
+python -m pip install -e ./antigravity-sdk-python
+
+# Or build a wheel and install on a target machine:
+python -m pip wheel ./antigravity-sdk-python -w ./dist
+python -m pip install ./dist/google_antigravity-*.whl
 ```
 
 > [!IMPORTANT]
 > The Google Antigravity SDK relies on a compiled runtime binary that is
 > included in the platform-specific wheels published to
-> [PyPI](https://pypi.org/project/google-antigravity/). **Cloning this
-> repository alone is not sufficient to run the SDK.** Always install from
-> PyPI with `pip install google-antigravity` to obtain the binary.
+> [PyPI](https://pypi.org/project/google-antigravity/). Cloning this
+> repository alone may not produce a runnable binary; for development, use
+> the local editable install above. For public installs use
+> `pip install google-antigravity` when a release is published.
 
 ## Quickstart
 
