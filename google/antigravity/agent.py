@@ -139,6 +139,14 @@ class Agent:
             )
         )
 
+      if not self._config.gemini_config.api_key and not os.environ.get("GEMINI_API_KEY"):
+        raise ValueError(
+            "GEMINI_API_KEY is missing. A valid API key is required to start the Agent. "
+            "Get one for free at https://aistudio.google.com/app/apikey, and either set "
+            "it in the GEMINI_API_KEY environment variable or pass it directly to "
+            "LocalAgentConfig(api_key='...')."
+        )
+
       all_tools = list(self._config.tools)
       # Connect MCP servers
       if self._config.mcp_servers:

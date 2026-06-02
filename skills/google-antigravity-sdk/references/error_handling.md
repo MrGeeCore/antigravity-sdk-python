@@ -36,6 +36,18 @@ The SDK provides specific exceptions that you can catch in your application code
 
 *   **`AntigravityValidationError`**: Raised when input validation fails (e.g., invalid parameters passed to a tool or configuration).
 *   **`AntigravityConnectionError`**: Raised when connection issues occur (e.g., WebSocket drops, timeout).
+*   **`ImportError`**: Raised during `LocalAgentConfig` or `Agent` initialization if the underlying protobuf dependencies are incompatible with the generated code.
+
+### Import and Protobuf Errors
+
+If you encounter an `ImportError` citing `Couldn't build proto file into descriptor pool`, it means the system's `protobuf` library version is too old for the `localharness_pb2` generated bindings. The SDK requires `protobuf>=5.26.0`.
+
+To quickly diagnose import and dependency issues, run the Antigravity Status Ping script from the workspace:
+
+```sh
+python scripts/antigrav-ping.py
+```
+This script will report whether the Python package, core symbols, and Local Harness binary are present and healthy.
 
 Example:
 

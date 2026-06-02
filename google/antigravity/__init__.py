@@ -14,6 +14,16 @@
 
 """Google Antigravity SDK for building AI agents."""
 
+# Compute __version__ *first* (before any subpackage imports) to avoid circular
+# import issues when mcp.server (or mcp bridge consumers) pull it during package init.
+# This is required for the MCP status tool exposure so pings can call it directly.
+try:
+    from importlib.metadata import version, PackageNotFoundError
+
+    __version__ = version("google-antigravity")
+except (ImportError, PackageNotFoundError):
+    __version__ = "0.1.1"
+
 from google.antigravity.agent import Agent
 from google.antigravity.connections.connection import AgentConfig
 from google.antigravity.connections.local.local_connection_config import LocalAgentConfig
@@ -38,4 +48,5 @@ __all__ = [
     "ModelEntry",
     "ThinkingLevel",
     "UsageMetadata",
+    "__version__",
 ]

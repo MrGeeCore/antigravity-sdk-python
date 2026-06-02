@@ -14,6 +14,8 @@
 
 """Local connection for the Google Antigravity SDK."""
 
+from __future__ import annotations
+
 import asyncio
 import collections
 import dataclasses
@@ -40,11 +42,14 @@ import websockets
 
 from google.antigravity import types
 from google.antigravity.connections import connection
-from google.antigravity.connections.local import localharness_pb2
 from google.antigravity.connections.local import types as local_types
 from google.antigravity.hooks import hook_runner as h_runner
 from google.antigravity.hooks import hooks
 from google.antigravity.tools import tool_runner as t_runner
+
+import typing
+if typing.TYPE_CHECKING:
+  from google.antigravity.connections.local import localharness_pb2
 
 
 resources = None
@@ -56,11 +61,12 @@ _ANY_ADAPTER = pydantic.TypeAdapter(Any)
 class _StepTracker:
   """Tracks state and handled requests for a trajectory step to prevent non-linearity bugs."""
 
-  state: int = localharness_pb2.StepUpdate.State.STATE_UNSPECIFIED
+  state: int = 0
   handled_requests: set[str] = dataclasses.field(default_factory=set)
 
   def update_state(self, new_state: int) -> None:
     """Updates state and clears handled requests if transitioning out of waiting."""
+    from google.antigravity.connections.local import localharness_pb2
     if (
         self.state == localharness_pb2.StepUpdate.State.STATE_WAITING_FOR_USER
         and new_state
@@ -141,7 +147,7 @@ class _PendingCallValue(NamedTuple):
 
 
 def _extract_tool_result(
-    step_update: localharness_pb2.StepUpdate,
+    step_update: "localharness_pb2.StepUpdate",
 ) -> "local_types.ToolOutput | None":
   """Extracts a structured tool result from per-action fields.
 
@@ -356,7 +362,7 @@ class LocalConnectionStep(types.Step):
 def callable_to_tool_proto(
     fn: Callable[..., Any],
     tool_runner: t_runner.ToolRunner | None = None,
-) -> localharness_pb2.Tool:
+) -> "localharness_pb2.Tool":
   """Converts a Python callable to a localharness Tool proto.
 
   Uses google.genai.types.FunctionDeclaration for schema extraction.
@@ -371,6 +377,7 @@ def callable_to_tool_proto(
   Returns:
       A localharness_pb2.Tool proto.
   """
+  from google.antigravity.connections.local import localharness_pb2
   if isinstance(fn, t_runner.ToolWithSchema):
     return localharness_pb2.Tool(
         name=fn.__name__,
@@ -403,7 +410,7 @@ def callable_to_tool_proto(
 
 
 def _parse_usage_metadata(
-    usage_metadata: localharness_pb2.UsageMetadata,
+    usage_metadata: "localharness_pb2.UsageMetadata",
 ) -> types.UsageMetadata:
   """Extracts UsageMetadata from proto message."""
   return types.UsageMetadata(
@@ -435,6 +442,21 @@ class LocalConnection(connection.Connection):
       tool_runner: t_runner.ToolRunner | None = None,
       hook_runner: h_runner.HookRunner | None = None,
   ):
+    try:
+      from google.antigravity.connections.local import localharness_pb2
+    except TypeError as e:
+      import importlib.metadata
+      try:
+        pb_version = importlib.metadata.version("protobuf")
+      except Exception:
+        pb_version = "unknown"
+      raise ImportError(
+          f"The local harness protobuf descriptor could not be loaded (edition mismatch). "
+          f"Current protobuf version: {pb_version}. "
+          "Suggested fixes: `pip install --upgrade protobuf`, use `pip install -e .` from a fresh clone, "
+          "or set ANTIGRAVITY_DISABLE_LOCAL_HARNESS=1 if you only need remote connections."
+      ) from e
+
     self._hook_runner = hook_runner
     self._process = process
     self._ws = ws
@@ -500,6 +522,8 @@ class LocalConnection(connection.Connection):
     Args:
       prompt: The user prompt or content to send.
     """
+    from google.antigravity.connections.local import localharness_pb2
+    
     self._cancelled = False
     self._is_idle.clear()
     self._parent_idle = False
@@ -735,6 +759,7 @@ class LocalConnection(connection.Connection):
 
   async def cancel(self) -> None:
     """Cancels the current turn."""
+    from google.antigravity.connections.local import localharness_pb2
     event = localharness_pb2.InputEvent(halt_request=True)
     await self._ws.send(json_format.MessageToJson(event))
 
@@ -756,6 +781,7 @@ class LocalConnection(connection.Connection):
 
   async def _ws_reader_loop(self) -> None:
     """Reads OutputEvents from the WebSocket, routes steps, and dispatches tools."""
+    from google.antigravity.connections.local import localharness_pb2
     try:
       async for raw_msg in self._ws:
         logging.info("RAW WS MSG: %s", raw_msg)

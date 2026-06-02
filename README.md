@@ -27,6 +27,26 @@ python -m pip install ./dist/google_antigravity-*.whl
 > repository alone may not produce a runnable binary; for development, use
 > the local editable install above. For public installs use
 > `pip install google-antigravity` when a release is published.
+>
+> The SDK requires `protobuf>=5.26.0` to match the compiled gencode editions.
+
+### Verification
+
+You can quickly verify that your installation is healthy and the environment is ready by running the workspace ping script:
+
+```sh
+python ../scripts/antigrav-ping.py
+```
+
+The SDK also exposes an MCP server (`google.antigravity.mcp.server`) and a direct status helper
+(`from google.antigravity.mcp import _get_antigrav_status`). This prepares Antigrav for
+direct tool use in MCP-aware environments (status pings can discover via `search_tool` and
+invoke the `mcp_antigrav_status` tool). The ping script already exercises the direct helper.
+
+For the MCP server stdio mode (for external MCP hosts):
+```sh
+python -m google.antigravity.mcp.server
+```
 
 ## Quickstart
 
