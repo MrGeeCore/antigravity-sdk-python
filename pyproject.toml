@@ -41,7 +41,7 @@ dependencies = [
     "pydantic>=2.0",
     "uvicorn>=0.46",
     "websockets>=12.0",
-    "protobuf>=4.25",
+    "protobuf>=5.26.0",
 ]
 
 [project.optional-dependencies]
@@ -59,7 +59,8 @@ include = ["google*"]
 # Include the pre-compiled Go binary in the wheel.
 # The release script places the platform-appropriate binary at
 # google/antigravity/bin/localharness before building each wheel.
+# Note: The binary is completely optional for Python-only development workflows.
+# `pip install -e .` will succeed and pure-remote use cases will function
+# perfectly without it, or you can use `harness_shim.exe` as a fallback.
 [tool.setuptools.package-data]
 "google.antigravity.bin" = ["*"]
-
-
